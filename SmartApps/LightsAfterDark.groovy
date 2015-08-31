@@ -1,5 +1,5 @@
 /**
- *  Lights After Dark
+ *  Lights After dark
  *
  *  Copyright 2015 Elastic Development
  *
@@ -21,9 +21,10 @@
  *  2015-01-04: Version: 1.0.0
  *  Initial Revision
  */
+import groovy.time.*
 
 definition(
-    name: "Lights After dark",
+    name: "Lights After Dark",
     namespace: "elasticdev",
     author: "James P",
     description: "Turns on the lights when people arrive after sunset but before sunrise",
@@ -38,25 +39,30 @@ preferences {
         paragraph "Version 1.0"
     }
 
-    section("When I arrive..."){
-        input "presence", "capability.presenceSensor", title: "Who?", multiple: true
+    section("When one of these people arrive at home"){
+        input "presence", "capability.presenceSensor", title: "Who?", required: true, multiple: true
     }
 
-    section("Turn on these lights..."){
+    section("Turn on these lights") {
         input "lights", "capability.switch", multiple: true
-        input "lightDuration", "number", title: "Stay on for how many minutes?", description: "5", required: false
+        input "lightsDuration", "number", title: "Stay on for how many minutes?", description: "5", required: false
+    }
+
+	section ("Additionally", hidden: hideOptionsSection(), hideable: true) {
+		input "falseAlarmThreshold", "decimal", title: "Number of minutes", required: false
+        input "debugOutput", "boolean", title: "Enable debug logging?", defaultValue: false
     }
 }
 
 def installed()
 {
-    log.debug "Installed with settings: ${settings}"
+    log.trace "Installed with settings: ${settings}"
     initialize()
 }
 
 def updated()
 {
-    log.debug "Updated with settings: ${settings}"
+    log.trace "Updated with settings: ${settings}"
     unsubscribe()
     initialize()
 }
@@ -64,23 +70,27 @@ def updated()
 /**
  *	Initialize the script
  *
- *	Set the initial state and subscribe to the events
+ *	Set the inital state and subscribe to the events
  */
 def initialize() {
-    //Set initial state
+	//Set initial state
     state.afterDark = false
+    state.threshold = (falseAlarmThreshold) ? (falseAlarmThreshold * 60 * 1000) as Long : 5 * 60 * 1000L
 
     //Subscribe to sunrise and sunset events
     subscribe(location, "sunrise", sunriseHandler)
     subscribe(location, "sunset", sunsetHandler)
-    //Subscribe only to the 'present' event of the presence sensor
-    subscribe(presence, "presence.present", presenceHandler)
+	subscribe(presence, "presence", presenceHandler)
 
     //Check if current time is after sunset
     def sunset = getSunriseAndSunset().sunset
     def now = new Date()
     if (sunset.before(now)) {
         state.afterDark = true
+    }
+    if (debugOutput.toBoolean()) {
+	    log.debug "state.afterDark: $state.afterDark"
+	    log.debug "state.threshold: $state.threshold"
     }
 }
 
@@ -92,7 +102,9 @@ def initialize() {
  *	evt		The sunrise event
  */
 def sunriseHandler(evt) {
-    log.debug "Sunrise evt: ${evt}, ${evt.value}"
+    if (debugOutput.toBoolean()) {
+	    log.debug "Sunrise evt: ${evt}, ${evt.value}"
+    }
     def sunriseTime = new Date()
     log.info "Sunrise at ${sunriseTime}"
     state.afterDark = false
@@ -106,7 +118,9 @@ def sunriseHandler(evt) {
  *	evt		The sunset event
  */
 def sunsetHandler(evt) {
-    log.debug "Sunset evt: ${evt}, ${evt.value}"
+    if (debugOutput.toBoolean()) {
+	    log.debug "Sunset evt: ${evt}"
+    }
     def sunsetTime = new Date()
     log.info "Sunset at ${sunsetTime}"
     state.afterDark = true
@@ -121,17 +135,33 @@ def sunsetHandler(evt) {
  */
 def presenceHandler(evt)
 {
-    log.debug "Presence evt: ${evt}, ${evt.value}"
+    if (debugOutput.toBoolean()) {
+    	log.debug "Presence evt.name: $evt.value"
+    }
 
     if (state.afterDark) {
-        switches.on()
-        //If we turn off the lights after some period, set timer
-        if (lightDuration) {
-            def delayInSeconds = lightsDuration * 60
-            //No need to guard against multiple arrivals, 
-            //since calling 'runIn' again cancels any existing scheduled event
-            runIn(delayInSeconds, lightsOffHandler)
+		if("present" == evt.value) {
+			def thresholdWindow = new Date(now() - state.threshold)
+
+            def person = presence.find{it.id == evt.deviceId}
+            def recentNotPresent = person.statesSince("presence", thresholdWindow).find{it.value == "not present"}
+            if (recentNotPresent && debugOutput.toBoolean()) {
+                log.debug "skipping notification of arrival of ${person.displayName} because last departure was only ${now() - recentNotPresent.date.time} msec ago"
+            }
+            else {
+                lights.on()
+                //If we turn off the lights after some period, set timer
+                if (lightsDuration) {
+                    def delayInSeconds = lightsDuration * 60
+                    //No need to guard against multiple arrivals, 
+                    //since calling 'runIn' again cancels any existing scheduled event
+                    runIn(delayInSeconds, lightsOffHandler)
+                }
+            }
         }
+    }
+    else if (debugOutput.toBoolean()) {
+        log.debug "Not after dark - do nothing"
     }
 }
 
@@ -144,7 +174,14 @@ def presenceHandler(evt)
  */
 def lightsOffHandler(evt)
 {
-    log.debug "runIn evt: ${evt}, ${evt.value}"
-    switches.off()
+    log.debug "runIn evt: ${evt}"
+    lights.off()
+}
+
+/**
+ * Enables/Disables the optional section
+ */
+private hideOptionsSection() {
+    (falseAlarmThreshold || debugOutput) ? false : true
 }
 //EOF
