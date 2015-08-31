@@ -13,7 +13,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *  The latest version of this file can be found at:
- *  https://github.com/jpansarasa/SmartThings/blob/master/DeviceTypes/AeotecHDSS.groovy
+ *  https://github.com/jpansarasa/SmartThings/blob/master/devicetypes/elasticdev/aeon-labs-heavy-duty-smart-energy-switch.src/aeon-labs-heavy-duty-smart-energy-switch.groovy
  *
  *  Revision History
  *  ----------------
@@ -40,47 +40,47 @@
  *  Z-Wave Supported Command Classes:
  *  Code Name					Version
  *  ==== ======================================	=======
- *  0x25 COMMAND_CLASS_SWITCH_BINARY		V1
- *  0x32 COMMAND_CLASS_METER			V3
- *  0x31 COMMAND_CLASS_SENSOR_MULTILEVEL	V5
- *  0x27 COMMAND_CLASS_SWITCH_ALL		V1
- *  0x70 COMMAND_CLASS_CONFIGURATION		V1
- *  0x56 COMMAND_CLASS_CRC_16_ENCAP		V1
+ *  0x25 COMMAND_CLASS_SWITCH_BINARY			V1
+ *  0x32 COMMAND_CLASS_METER					V3
+ *  0x31 COMMAND_CLASS_SENSOR_MULTILEVEL		V5
+ *  0x27 COMMAND_CLASS_SWITCH_ALL				V1
+ *  0x70 COMMAND_CLASS_CONFIGURATION			V1
+ *  0x56 COMMAND_CLASS_CRC_16_ENCAP				V1
  *  ---- ---- Supported but unimplemented -----	--
- *  0x2C COMMAND_CLASS_SCENE_ACTUATOR_CONF	V1
- *  0x2B COMMAND_CLASS_SCENE_ACTIVATION		V1
- *  0x85 COMMAND_CLASS_ASSOCIATION		V2
+ *  0x2C COMMAND_CLASS_SCENE_ACTUATOR_CONF		V1
+ *  0x2B COMMAND_CLASS_SCENE_ACTIVATION			V1
+ *  0x85 COMMAND_CLASS_ASSOCIATION				V2
  *  0x72 COMMAND_CLASS_MANUFACTURER_SPECIFIC	V2
- *  0x86 COMMAND_CLASS_VERSION			V2
- *  0x7A COMMAND_CLASS_FIRMWARE_UPDATE_MD	V2
- *  0x73 COMMAND_CLASS_POWERLEVEL		V1
- *  0x98 COMMAND_CLASS_SECURITY			V1
- *  0xEF COMMAND_CLASS_MARK			V1
+ *  0x86 COMMAND_CLASS_VERSION					V2
+ *  0x7A COMMAND_CLASS_FIRMWARE_UPDATE_MD		V2
+ *  0x73 COMMAND_CLASS_POWERLEVEL				V1
+ *  0x98 COMMAND_CLASS_SECURITY					V1
+ *  0xEF COMMAND_CLASS_MARK						V1
  *  ---- ---- Supported but unknown types -----	--
  *  0x5E ???
  *  0x59 ???
  *  0x5A ???
+ *
  **/
 
 metadata {
     definition (name: "Aeon Labs Heavy Duty Smart Energy Switch", namespace: "elasticdev", author: "James P") {
-        capability "Switch"
-        capability "Energy Meter"
-        capability "Power Meter"
-        capability "Temperature Measurement"
-        capability "Configuration"
-        capability "Sensor"
-        capability "Actuator"
-        capability "Polling"
-        capability "Refresh"
+		capability "Switch"
+		capability "Energy Meter"
+		capability "Power Meter"
+		capability "Temperature Measurement"
+		capability "Configuration"
+		capability "Sensor"
+		capability "Actuator"
+		capability "Polling"
+		capability "Refresh"
 
-        attribute "voltage", "number"
-        attribute "current", "number"
+		attribute "voltage", "number"
+		attribute "current", "number"
 
-        command "reset"
+		command "reset"
 
-
-        fingerprint deviceId: "0x1001", inClusters: "0x5E,0x25,0x32,0x31,0x27,0x2C,0x2B,0x70,0x85,0x59,0x56,0x72,0x86,0x7A,0x73,0x98,0xEF,0x5A"
+		fingerprint deviceId: "0x1001", inClusters: "0x5E,0x25,0x32,0x31,0x27,0x2C,0x2B,0x70,0x85,0x59,0x56,0x72,0x86,0x7A,0x73,0x98,0xEF,0x5A"
     }
 
     // simulator metadata
@@ -195,7 +195,7 @@ def parse(String description) {
     def cmd = zwave.parse(description, [0x20: 1, 0x25 : 1, 0x32 : 3, 0x31 : 5, 0x27 : 1, 0x2C : 1, 0x2B : 1, 0x70 : 1, 0x85 : 2, 0x56 : 1, 0x72 : 2, 0x86 : 2,  0x7A : 2, 0x73 : 1, 0x98 : 1,  0xEF : 1])
 
     if (cmd) {
-	event = createEvent(zwaveEvent(cmd))
+        event = createEvent(zwaveEvent(cmd))
     }
     if (state.debug) log.debug "Parse returned ${event?.inspect()}"
     return event
@@ -217,15 +217,15 @@ def on() {
     if (state.onOffDisabled) {
         if (state.debug) log.debug "On/Off disabled"
         delayBetween([
-	    secure(zwave.basicV1.basicGet()),
+	    	secure(zwave.basicV1.basicGet()),
     	    secure(zwave.switchBinaryV1.switchBinaryGet()),
-        ], 5)
+        	], 5)
     }
     else {
         delayBetween([
-	    secure(zwave.basicV1.basicSet(value: 0xFF)),
+		    secure(zwave.basicV1.basicSet(value: 0xFF)),
             secure(zwave.switchBinaryV1.switchBinaryGet())
-	])
+		])
     }
 }
 
@@ -238,15 +238,15 @@ def off() {
     if (state.onOffDisabled) {
         if (state.debug) log.debug "On/Off disabled"
         delayBetween([
-	    secure(zwave.basicV1.basicGet()),
+        	secure(zwave.basicV1.basicGet()),
     	    secure(zwave.switchBinaryV1.switchBinaryGet()),
-        ], 5)
+        	], 5)
     }
     else {
         delayBetween([
-	    secure(zwave.basicV1.basicSet(value: 0x00)),
+			secure(zwave.basicV1.basicSet(value: 0x00)),
             secure(zwave.switchBinaryV1.switchBinaryGet())
-	])
+		])
     }
 }
 
@@ -257,13 +257,13 @@ def off() {
  */
 def poll() {
     delayBetween([
-	secure(zwave.basicV1.basicGet()),
-	secure(zwave.switchBinaryV1.switchBinaryGet()),
-	secure(zwave.sensorMultilevelV5.sensorMultilevelGet(sensorType: 1, scale: 1)),
-	secure(zwave.meterV3.meterGet(scale: 0)), //kWh
-	secure(zwave.meterV3.meterGet(scale: 2)), //Wattage
-	secure(zwave.meterV3.meterGet(scale: 4)), //Voltage
-	secure(zwave.meterV3.meterGet(scale: 5))  //Current
+        secure(zwave.basicV1.basicGet()),
+        secure(zwave.switchBinaryV1.switchBinaryGet()),
+        secure(zwave.sensorMultilevelV5.sensorMultilevelGet(sensorType: 1, scale: 1)),
+        secure(zwave.meterV3.meterGet(scale: 0)), //kWh
+        secure(zwave.meterV3.meterGet(scale: 2)), //Wattage
+        secure(zwave.meterV3.meterGet(scale: 4)), //Voltage
+        secure(zwave.meterV3.meterGet(scale: 5))  //Current
     ])
 }
 
@@ -274,13 +274,13 @@ def poll() {
  */
 def refresh() {
     delayBetween([
-	secure(zwave.basicV1.basicGet()),
-	secure(zwave.switchBinaryV1.switchBinaryGet()),
-	secure(zwave.sensorMultilevelV5.sensorMultilevelGet(sensorType: 1, scale: 1)),
-	secure(zwave.meterV3.meterGet(scale: 0)), //kWh
-	secure(zwave.meterV3.meterGet(scale: 2)), //Wattage
-	secure(zwave.meterV3.meterGet(scale: 4)), //Voltage
-	secure(zwave.meterV3.meterGet(scale: 5))  //Current
+        secure(zwave.basicV1.basicGet()),
+        secure(zwave.switchBinaryV1.switchBinaryGet()),
+        secure(zwave.sensorMultilevelV5.sensorMultilevelGet(sensorType: 1, scale: 1)),
+        secure(zwave.meterV3.meterGet(scale: 0)), //kWh
+        secure(zwave.meterV3.meterGet(scale: 2)), //Wattage
+        secure(zwave.meterV3.meterGet(scale: 4)), //Voltage
+        secure(zwave.meterV3.meterGet(scale: 5))  //Current
     ])
 }
 
@@ -291,8 +291,8 @@ def refresh() {
  */
 def reset() {
     return [
-	secure(zwave.meterV3.meterReset()),
-	secure(zwave.meterV3.meterGet(scale: 0)) //kWh
+        secure(zwave.meterV3.meterReset()),
+        secure(zwave.meterV3.meterGet(scale: 0)) //kWh
     ]
 }
 
@@ -305,7 +305,7 @@ def configure() {
     //Get the values from the preferences section
     def reportIntervalSecs = 60;
     if (reportInterval) {
-	reportIntervalSecs = 60 * reportInterval.toInteger()
+    	reportIntervalSecs = 60 * reportInterval.toInteger()
     }
 	
     def switchAllMode = physicalgraph.zwave.commands.switchallv1.SwitchAllSet.MODE_INCLUDED_IN_THE_ALL_ON_ALL_OFF_FUNCTIONALITY
@@ -364,15 +364,15 @@ def configure() {
     ***************************************************************/
     if (state.debug) log.debug "configure(reportIntervalSecs: ${reportIntervalSecs}, switchAllMode: ${switchAllMode})"
     delayBetween([
-	secure(zwave.switchAllV1.switchAllSet(mode: switchAllMode)),
-	secure(zwave.configurationV1.configurationSet(parameterNumber: 0xFC, size: 1, scaledConfigurationValue: 0)),	//Disable Lock Configuration (0 =disable, 1 = enable).
-	secure(zwave.configurationV1.configurationSet(parameterNumber: 0x50, size: 1, scaledConfigurationValue: 2)),	//Enable to send notifications to associated devices when load changes (0=nothing, 1=hail CC, 2=basic CC report)
-	secure(zwave.configurationV1.configurationSet(parameterNumber: 0x5A, size: 1, scaledConfigurationValue: 1)),	//Enables parameter 0x5B and 0x5C (0=disabled, 1=enabled)
-	secure(zwave.configurationV1.configurationSet(parameterNumber: 0x5B, size: 2, scaledConfigurationValue: 50)),	//Minimum change in wattage for a REPORT to be sent (Valid values 0‐ 60000)
-	secure(zwave.configurationV1.configurationSet(parameterNumber: 0x5C, size: 1, scaledConfigurationValue: 10)),	//Minimum change in percentage for a REPORT to be sent (Valid values 0‐ 100)
-	secure(zwave.configurationV1.configurationSet(parameterNumber: 0x65, size: 4, scaledConfigurationValue: 15)),	//Which reports need to send in Report group 1
-	secure(zwave.configurationV1.configurationSet(parameterNumber: 0x6F, size: 4, scaledConfigurationValue: reportIntervalSecs)),	//Send Report to group 1 for this interval (Valid values 0x01‐0x7FFFFFFF).
-	secure(zwave.configurationV1.configurationSet(parameterNumber: 0xFC, size: 1, scaledConfigurationValue: 1))	//Enable Lock Configuration (0 =disable, 1 = enable).
+        secure(zwave.switchAllV1.switchAllSet(mode: switchAllMode)),
+        secure(zwave.configurationV1.configurationSet(parameterNumber: 0xFC, size: 1, scaledConfigurationValue: 0)),	//Disable Lock Configuration (0 =disable, 1 = enable).
+        secure(zwave.configurationV1.configurationSet(parameterNumber: 0x50, size: 1, scaledConfigurationValue: 2)),	//Enable to send notifications to associated devices when load changes (0=nothing, 1=hail CC, 2=basic CC report)
+        secure(zwave.configurationV1.configurationSet(parameterNumber: 0x5A, size: 1, scaledConfigurationValue: 1)),	//Enables parameter 0x5B and 0x5C (0=disabled, 1=enabled)
+        secure(zwave.configurationV1.configurationSet(parameterNumber: 0x5B, size: 2, scaledConfigurationValue: 50)),	//Minimum change in wattage for a REPORT to be sent (Valid values 0‐ 60000)
+        secure(zwave.configurationV1.configurationSet(parameterNumber: 0x5C, size: 1, scaledConfigurationValue: 10)),	//Minimum change in percentage for a REPORT to be sent (Valid values 0‐ 100)
+        secure(zwave.configurationV1.configurationSet(parameterNumber: 0x65, size: 4, scaledConfigurationValue: 15)),	//Which reports need to send in Report group 1
+        secure(zwave.configurationV1.configurationSet(parameterNumber: 0x6F, size: 4, scaledConfigurationValue: reportIntervalSecs)),	//Send Report to group 1 for this interval (Valid values 0x01‐0x7FFFFFFF).
+        secure(zwave.configurationV1.configurationSet(parameterNumber: 0xFC, size: 1, scaledConfigurationValue: 1))		//Enable Lock Configuration (0 =disable, 1 = enable).
     ])
 }
 
@@ -385,11 +385,11 @@ def configure() {
  */
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
     if (state.debug) {
-	log.debug "Unhandled: $cmd"
-	createEvent(descriptionText: "${device.displayName}: ${cmd}")
+        log.debug "Unhandled: $cmd"
+        createEvent(descriptionText: "${device.displayName}: ${cmd}")
     }
     else {
-	[:]
+    	[:]
     }
 }
 
@@ -412,7 +412,7 @@ def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulat
     // Like zwave.parse, the parameter is a map that can specify command class versions here like in zwave.parse
     def encapsulatedCommand = cmd.encapsulatedCommand([0x20: 1, 0x25 : 1, 0x32 : 3, 0x31 : 5, 0x27 : 1, 0x2C : 1, 0x2B : 1, 0x70 : 1, 0x85 : 2, 0x56 : 1, 0x72 : 2, 0x86 : 2,  0x7A : 2, 0x73 : 1, 0x98 : 1,  0xEF : 1])
     if (encapsulatedCommand) {
-	return zwaveEvent(encapsulatedCommand)
+		return zwaveEvent(encapsulatedCommand)
     }
 }
 
@@ -488,7 +488,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd) {
     def map = [ name: electricNames[cmd.scale], unit: electricUnits[cmd.scale], displayed: state.display]
     switch(cmd.scale) {
         case 0: //kWh
-	    previousValue = device.currentValue("energy") ?: cmd.scaledPreviousMeterValue ?: 0
+            previousValue = device.currentValue("energy") ?: cmd.scaledPreviousMeterValue ?: 0
             map.value = cmd.scaledMeterValue
             break;
         case 1: //kVAh
@@ -533,7 +533,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
     if (state.debug) log.debug "SensorMultilevelReport(sensorType:${cmd.sensorType}, scale:${cmd.scale}, precision:${cmd.precision}, scaledSensorValue:${cmd.scaledSensorValue}, sensorValue:${cmd.sensorValue}, size:${cmd.size})"
     //The temperature sensor only measures the internal temperature of product (Circuit board)
     if (cmd.sensorType == physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport.SENSOR_TYPE_TEMPERATURE_VERSION_1) {
-	createEvent(name: "temperature", value: cmd.scaledSensorValue, unit: cmd.scale ? "F" : "C", displayed: false )
+        createEvent(name: "temperature", value: cmd.scaledSensorValue, unit: cmd.scale ? "F" : "C", displayed: false )
     }
 }
 //EOF
