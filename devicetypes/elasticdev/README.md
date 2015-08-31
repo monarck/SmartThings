@@ -1,7 +1,7 @@
 <h2>SmartThings Device Types</h2>
 
 <ul>
-	<li>aeon-labs-heavy-duty-smart-energy-switch.src</li>
+	<li><h3>aeon-labs-heavy-duty-smart-energy-switch.src</h3></li>
 	<h5>Aeon Labs Heavy Duty Smart Switch - ZW078</h5>
 	<span>
 	<p>This device supports the switch control as well as reporting on the power (in Watts), energy (in kWh), voltage (in Volts), and current (in Amps). 
