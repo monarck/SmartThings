@@ -24,6 +24,7 @@
  *  Reorganized preferences section
  *  2015-01-18: Version: 1.1.0
  *  Added option to disable polling
+ *
  */
 
 import groovy.time.*
