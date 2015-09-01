@@ -50,7 +50,7 @@ preferences {
     }
 
 	section ("Additionally", hidden: hideOptionsSection(), hideable: true) {
-		input "falseAlarmThreshold", "decimal", title: "Number of minutes", required: false
+		input "falseAlarmThreshold", "decimal", title: "False alarm threshold (minutes)", required: false
         input "debugOutput", "boolean", title: "Enable debug logging?", defaultValue: false
     }
 }
