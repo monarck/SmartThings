@@ -24,10 +24,10 @@
  *  Reorganized preferences section
  *  2015-01-18: Version: 1.1.0
  *  Added option to disable polling
+ *  2015-10-02: Version: 1.2.0
+ *	Removed the code to set the icon since it crashed the app on the phone
  *
  */
-
-import groovy.time.*
 
 definition(
     name: "Yet Another Power Monitor",
@@ -42,7 +42,7 @@ definition(
 preferences {
     section("About") {
         paragraph "Using power monitoring switch, monitor for a change in power consumption, and alert when the power draw stops."
-        paragraph "Version 1.1"
+        paragraph "Version 1.2"
     }
 
     section ("When this device stops drawing power") {
@@ -50,26 +50,22 @@ preferences {
     }
 
     section ("Advanced options", hidden: true, hideable: true) {
-        input "upperThreshold", "number", title: "start when power raises above (W)", description: "10", required: true
-        input "lowerThreshold", "number", title: "stop when power drops below (W)", description: "5", required: true
+        input "upperThreshold", "number", title: "start when power raises above (W)", description: "10", defaultValue: 10, required: true
+        input "lowerThreshold", "number", title: "stop when power drops below (W)", description: "5", defaultValue: 5, required: true
     }
 
     section ("Send this message") {
         input "message", "text", title: "Notification message", description: "Washer is done!", required: true
     }
 
-    section ("Notification method") {
+   section ("Notification method") {
         input "sendPushMessage", "boolean", title: "Send a push notification?", defaultValue: true
         input "phone", "phone", title: "Send a text message to:", required: false
     }
 
-    section("Select Icon") {
-        icon(title: "Pick an icon for the notification", required: true)
-    }
-
     section ("Additionally", hidden: hideOptionsSection(), hideable: true) {
-        input "enablePolling", "boolean", title: "Enable polling?", defaultValue: true
-        input "interval", "number", title: "Polling interval in minutes:", description: "5", defaultValue: 5, required: false
+        input "enablePolling", "boolean", title: "Enable polling?", defaultValue: false
+        input "interval", "number", title: "Polling interval in minutes:", description: "5", defaultValue: 5
         input "debugOutput", "boolean", title: "Enable debug logging?", defaultValue: false
     }
 }
@@ -102,15 +98,15 @@ def initialize() {
     def pollingInterval = (interval) ? interval : 5
     def ticklerSchedule = "0 0/${pollingInterval} * * * ?"
 
-    if (debugOutput.toBoolean()) {
-        if (enablePolling.toBoolean()) {
+    if (debugOutput) {
+        if (enablePolling) {
             log.debug "Polling every ${pollingInterval} minutes"
         }
         else {
             log.debug "Polling disabled"
         }
     }
-    if (enablePolling.toBoolean()) {
+    if (enablePolling) {
         schedule(ticklerSchedule, tickler)
     }
     subscribe(meter, "power", powerHandler)
@@ -128,10 +124,10 @@ def tickler(evt) {
     meter.poll()
 
     def currPower = meter.currentValue("power")
-    if (debugOutput.toBoolean() && currPower > upperThreshold) {
+    if (debugOutput && currPower > upperThreshold) {
         log.debug "Power ${currPower}W above threshold of ${upperThreshold}W"
     }
-    else if (debugOutput.toBoolean() && currPower <= lowerThreshold) {
+    else if (debugOutput && currPower <= lowerThreshold) {
         log.debug "Power ${currPower}W below threshold of ${lowerThreshold}W"
     }
 }
@@ -144,7 +140,7 @@ def tickler(evt) {
  *	evt		The power event
  */
 def powerHandler(evt) {
-    if (debugOutput.toBoolean()) {
+    if (debugOutput) {
         log.debug "power evt: ${evt}"
         log.debug "state: ${state}"
     }
@@ -181,7 +177,7 @@ private send(msg) {
     if (phone) {
         sendSms(phone, msg)
     }
-    if (debugOutput.toBoolean()) {
+    if (debugOutput) {
         log.debug msg
     }
 }
