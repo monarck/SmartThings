@@ -25,7 +25,7 @@
  *  2015-01-18: Version: 1.1.0
  *  Added option to disable polling
  *  2015-10-02: Version: 1.2.0
- *	Removed the code to set the icon since it crashed the app on the phone
+ *  Removed the code to set the icon since it crashed the app on the phone
  *
  */
 
@@ -93,20 +93,21 @@ def initialize() {
     state.cycleOn = false
     state.cycleStart = null
     state.cycleEnd =  null
+    state.debug = (debugOutput) ? debugOutput.toBoolean() : false
 
     //Schedule the tickler to run on the defined interval
     def pollingInterval = (interval) ? interval : 5
     def ticklerSchedule = "0 0/${pollingInterval} * * * ?"
 
-    if (debugOutput) {
-        if (enablePolling) {
+    if (state.debug) {
+        if (enablePolling && enablePolling.toBoolean()) {
             log.debug "Polling every ${pollingInterval} minutes"
         }
         else {
             log.debug "Polling disabled"
         }
     }
-    if (enablePolling) {
+    if (enablePolling && enablePolling.toBoolean()) {
         schedule(ticklerSchedule, tickler)
     }
     subscribe(meter, "power", powerHandler)
@@ -124,10 +125,10 @@ def tickler(evt) {
     meter.poll()
 
     def currPower = meter.currentValue("power")
-    if (debugOutput && currPower > upperThreshold) {
+    if (state.debug && currPower > upperThreshold) {
         log.debug "Power ${currPower}W above threshold of ${upperThreshold}W"
     }
-    else if (debugOutput && currPower <= lowerThreshold) {
+    else if (state.debug && currPower <= lowerThreshold) {
         log.debug "Power ${currPower}W below threshold of ${lowerThreshold}W"
     }
 }
@@ -140,7 +141,7 @@ def tickler(evt) {
  *	evt		The power event
  */
 def powerHandler(evt) {
-    if (debugOutput) {
+    if (state.debug) {
         log.debug "power evt: ${evt}"
         log.debug "state: ${state}"
     }
@@ -177,7 +178,7 @@ private send(msg) {
     if (phone) {
         sendSms(phone, msg)
     }
-    if (debugOutput) {
+    if (state.debug) {
         log.debug msg
     }
 }
